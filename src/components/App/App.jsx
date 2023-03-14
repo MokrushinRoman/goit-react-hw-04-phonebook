@@ -1,27 +1,30 @@
 import { useState, useEffect, useMemo } from 'react';
 import { nanoid } from 'nanoid';
-
 import { Box } from '../Box';
 import { Title, Contacts, Phonebook, Filter } from 'components';
 
-export const App = () => {
-  const initialContacts = [
-    { id: 'id-1', name: 'Hermione qwe', number: '443-89-22' },
-    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-  ];
-  const localStorageContacts = localStorage.getItem('contacts');
-  const parsedContacts = JSON.parse(localStorageContacts);
+const initialContacts = [
+  { id: 'id-1', name: 'Hermione qwe', number: '443-89-22' },
+  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+];
 
-  const [contacts, setContacts] = useState(
-    () => parsedContacts ?? initialContacts
+const useLocalStorage = (key, defaultValue) => {
+  const [state, setState] = useState(
+    () => JSON.parse(localStorage.getItem(key)) ?? defaultValue
   );
-  const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+    localStorage.setItem(key, JSON.stringify(state));
+  }, [key, state]);
+
+  return [state, setState];
+};
+
+export const App = () => {
+  const [contacts, setContacts] = useLocalStorage('contacts', initialContacts);
+  const [filter, setFilter] = useState('');
 
   const addContact = (name, number) => {
     const newContact = {
@@ -38,8 +41,6 @@ export const App = () => {
   };
 
   const handleFilterContacts = useMemo(() => {
-    console.log('handleFilterContacts');
-
     const normalizedFilter = filter.toLowerCase();
 
     return contacts.filter(({ name }) =>
@@ -50,7 +51,6 @@ export const App = () => {
   const onDeleteContact = contactId => {
     setContacts(contacts => contacts.filter(({ id }) => id !== contactId));
   };
-
 
   return (
     <Box
